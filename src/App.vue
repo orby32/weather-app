@@ -1,28 +1,149 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <h1>Vue weather app</h1>
+    <input type="text" placeholder="Enter city name" v-model="city" />
+    <button
+      @click="getWeather"
+      class="submit-btn"
+      :class="{ disabled: !isValid }"
+    >
+      Submit
+    </button>
+    <p>{{ msg }}</p>
+    <weather-card v-if="item.city != ''" :item="item" />
+        <!-- <button v-if="item" @click="clearLocalStorage">Clear</button> -->
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import WeatherCard from "./components/WeatherCard.vue";
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+  name: "App",
+  data() {
+    return {
+      key: "fc1b7d428601e38ba9e47391a44ed9a8",
+      city: "",
+      msg: "",
+      item: {
+        temp: '',
+        city: '',
+        weather: '',
+        icon: ''
+      }
+    };
+  },
+  computed: {
+    isValid() {
+      return this.city.length < 3 ? false : true;
+    }
+  },
+
+  methods: {
+    getWeather: function() {
+      // API call
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&units=metric&appid=${this.key}`
+      )
+        .then(response => response.json())
+        .then(json => {
+          // Get only the relevant data from response
+          const { main, weather, name } = json;
+          // Assign the data into item object
+          this.item = {
+            temp: Math.floor(main.temp),
+            city: name,
+            weather: weather[0].main,
+            icon:
+              "https://s3-us-west-2.amazonaws.com/s.cdpn.io/162656/" +
+              weather[0].icon +
+              ".svg"
+          };
+          // Store the object in localStorage
+          localStorage.setItem("localItem", JSON.stringify(this.item));
+        })
+        .catch(() => {
+          this.msg = "Please search for a valid city 😩";
+        });
+      // Clear view
+      this.clearView();
+    },
+    clearView: function() {
+      this.item = "";
+      this.msg = "";
+      this.city = '';
+    },
+    clearLocalStorage: function() {
+      localStorage.clear();
+      this.item.city = '';
+    }
+  },
+  created() {
+    // Load the localStorage data (if exist) when component is created
+    let localItem = localStorage.getItem("localItem");
+                if(localItem) {
+                  this.item = JSON.parse(localItem);
 }
+  },
+  components: {
+    "weather-card": WeatherCard
+  }
+};
 </script>
 
 <style>
+:root {
+  --text-light: #fff;
+  --text_med: #53627c;
+}
+* {
+  font-family: "Roboto", sans-serif;
+  box-sizing: border-box;
+}
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+body {
+  background-color: bisque;
+}
+
+h1 {
+  font-size: 60px;
+  text-transform: capitalize;
+}
+
+input {
+  width: 330px;
+  height: 49px;
+  border-radius: 2px;
+  border: none;
+  box-shadow: 0 5px 5px -5px #333;
+  padding: 0 10px;
+  font-size: 32px;
+  color: #2c3e50;
+  font-weight: bold;
+  background-color: transparent;
+  border-bottom: 3px solid lightblue;
+  text-transform: capitalize;
+}
+
+.submit-btn {
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  padding: 15px 20px;
+  margin-left: 15px;
+  border-radius: 5px;
+  border: none;
+  color: var(--text-light);
+  background: lightcoral;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+.submit-btn.disabled {
+  pointer-events: none;
+  background: #dcdcdc;
+  cursor: default;
 }
 </style>
