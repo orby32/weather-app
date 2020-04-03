@@ -10,32 +10,44 @@
       Submit
     </button>
     <p>{{ msg }}</p>
-    <weather-card v-if="item.city != ''" :item="item" />
-        <!-- <button v-if="item" @click="clearLocalStorage">Clear</button> -->
+    <weather-card v-if="isShowCard" :item="item" />
+    <button v-if="isShowCard" @click="clearLocalStorage" class="clear-btn">
+      Clear
+    </button>
   </div>
 </template>
 
 <script>
 import WeatherCard from "./components/WeatherCard.vue";
-
+import _ from "lodash";
 export default {
   name: "App",
   data() {
     return {
-      key: "fc1b7d428601e38ba9e47391a44ed9a8",
-      city: "",
+      key: this.$store.state.key,
       msg: "",
       item: {
-        temp: '',
-        city: '',
-        weather: '',
-        icon: ''
+        temp: "",
+        city: "",
+        weather: "",
+        icon: ""
       }
     };
   },
   computed: {
     isValid() {
-      return this.city.length < 3 ? false : true;
+      return this.$store.getters.isValid;
+    },
+    isShowCard() {
+      return this.item.city != "" && !_.isEmpty(this.item);
+    },
+    city: {
+      get() {
+        return this.$store.state.city;
+      },
+      set(value) {
+        this.$store.commit('updateCity', value)
+      }
     }
   },
 
@@ -71,19 +83,19 @@ export default {
     clearView: function() {
       this.item = "";
       this.msg = "";
-      this.city = '';
+      this.city = "";
     },
     clearLocalStorage: function() {
       localStorage.clear();
-      this.item.city = '';
+      this.item = {};
     }
   },
   created() {
     // Load the localStorage data (if exist) when component is created
     let localItem = localStorage.getItem("localItem");
-                if(localItem) {
-                  this.item = JSON.parse(localItem);
-}
+    if (localItem) {
+      this.item = JSON.parse(localItem);
+    }
   },
   components: {
     "weather-card": WeatherCard
@@ -145,5 +157,21 @@ input {
   pointer-events: none;
   background: #dcdcdc;
   cursor: default;
+}
+.clear-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border-radius: 50%;
+  border: 2px solid black;
+  font-weight: bold;
+  padding: 2px 7px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: transparent;
+  transition: all 0.3s;
+}
+.clear-btn:hover {
+  opacity: 0.8;
 }
 </style>

@@ -1,16 +1,19 @@
 <template>
     <div class="card">
         <p class="city-name">{{item.city}}</p>
-        <p class="celcius">{{item.temp}}°C</p>
+        <p class="celcius">{{item.temp | celcius}}</p>
         <span class="icon"></span>
         <p class="description">{{item.weather}}</p>
         <img :src='item.icon' />
+        
     </div>  
 </template>
 
 <script>
 export default {
-    props: ['item']
+    props: {
+        item: {}
+    }
 }
 </script>
 
